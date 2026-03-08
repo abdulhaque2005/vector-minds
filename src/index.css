@@ -210,7 +210,6 @@ img {
   gap: 24px;
   white-space: nowrap;
   will-change: transform;
-  transition: transform .03s linear
 }
 
 .nav-ticker-item {
@@ -4526,4 +4525,4 @@ button:active {
   .stats-row { grid-template-columns: 1fr; }
   .results-grid { grid-template-columns: 1fr; }
 }
-
+

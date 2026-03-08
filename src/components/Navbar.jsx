@@ -57,33 +57,35 @@ const INITIAL_NOTIFICATIONS = [
 
 function LiveTicker() {
     const { getRate } = useExchangeRates();
-    const [offset, setOffset] = useState(0);
-
-    useEffect(() => {
-        const t = setInterval(() => setOffset(o => o - 1), 28);
-        return () => clearInterval(t);
-    }, []);
 
     const items = [...TICKER_PAIRS, ...TICKER_PAIRS];
-    const pxOffset = offset % 780;
 
     return (
         <div className="nav-ticker-wrap">
-            <div className="nav-ticker" style={{ transform: `translateX(${pxOffset}px)` }}>
+            <motion.div
+                className="nav-ticker"
+                animate={{ x: [0, -780] }}
+                transition={{
+                    repeat: Infinity,
+                    ease: "linear",
+                    duration: 25
+                }}
+            >
                 {items.map(([f, t], i) => {
                     const rate = getRate(f, t);
-                    const up = (i + Math.floor(Date.now() / 4000)) % 3 !== 0;
+                    const up = (i % 3) !== 0;
+                    const pseudoRandom = ((i * 17) % 6) * 0.01 + 0.01;
                     return (
                         <span key={i} className="nav-ticker-item">
                             <span className="nav-ticker-pair">{f}/{t}</span>
                             <span className="nav-ticker-val">{rate > 10 ? rate.toFixed(2) : rate.toFixed(4)}</span>
                             <span className={`nav-ticker-chg ${up ? 'up' : 'down'}`}>
-                                {up ? '▲' : '▼'}{(Math.random() * 0.06 + 0.01).toFixed(3)}%
+                                {up ? '▲' : '▼'}{pseudoRandom.toFixed(3)}%
                             </span>
                         </span>
                     );
                 })}
-            </div>
+            </motion.div>
         </div>
     );
 }
@@ -424,10 +426,10 @@ export default function Navbar({ activeTab, setActiveTab, user, onEditProfile, o
                                 {mobileMenuOpen
                                     ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: .18 }}>
                                         <X size={20} />
-                                      </motion.span>
+                                    </motion.span>
                                     : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: .18 }}>
                                         <Menu size={20} />
-                                      </motion.span>
+                                    </motion.span>
                                 }
                             </AnimatePresence>
                         </button>

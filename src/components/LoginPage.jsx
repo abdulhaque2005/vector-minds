@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, ArrowRight, ShieldCheck, Check } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage({ onLogin }) {
     const [mode, setMode] = useState('login');
@@ -169,10 +170,56 @@ export default function LoginPage({ onLogin }) {
                         </button>
                     </form>
 
-                    {/* Social login removed per user request */}
+                    <div style={{ marginTop: 24 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '20px 0' }}>
+                            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                            <span style={{ fontSize: '.75rem', color: 'var(--t3)', letterSpacing: '0.05em' }}>OR CONTINUE WITH</span>
+                            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <div className="google-login-wrapper" style={{ width: '100%', display: 'flex', justifyContent: 'center', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))' }}>
+                                <GoogleLogin
+                                    onSuccess={async (credentialResponse) => {
+                                        setLoading(true);
+                                        setError('');
+                                        try {
+                                            // Decode JWT on the frontend for instant hackathon auth
+                                            const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
+
+                                            const backendURL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+                                            const res = await fetch(`${backendURL}/api/auth/google`, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    email: payload.email,
+                                                    name: payload.name,
+                                                    picture: payload.picture,
+                                                }),
+                                            });
+                                            const data = await res.json();
+                                            if (!res.ok) throw new Error(data.message || 'Google Auth failed');
+                                            localStorage.setItem('flx_user', JSON.stringify(data));
+                                            onLogin(data);
+                                        } catch (err) {
+                                            setError(err.message || 'Google Auth error');
+                                            setLoading(false);
+                                        }
+                                    }}
+                                    onError={() => {
+                                        setError('Google Login Failed');
+                                    }}
+                                    useOneTap
+                                    theme="filled_black"
+                                    text="continue_with"
+                                    size="large"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Switch mode */}
-                    <p style={{ textAlign: 'center', fontSize: '.775rem', color: 'var(--t4)', marginTop: 14 }}>
+                    <p style={{ textAlign: 'center', fontSize: '.775rem', color: 'var(--t4)', marginTop: 24 }}>
                         {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
                         <button style={{ color: 'var(--vl)', fontWeight: 700, cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', fontSize: 'inherit' }}
                             onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }}>

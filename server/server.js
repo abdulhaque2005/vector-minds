@@ -5,7 +5,11 @@ const cors = require('cors');
 const helmet = require('helmet');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit').rateLimit || require('express-rate-limit');
+const { OAuth2Client } = require('google-auth-library');
+const crypto = require('crypto');
 const User = require('./models/User');
+
+const googleClient = new OAuth2Client();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,7 +46,7 @@ const protect = async (req, res, next) => {
             return res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
-    
+
     if (!token) {
         return res.status(401).json({ message: 'Not authorized, no token' });
     }
@@ -104,6 +108,45 @@ app.post('/api/auth/login', async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+});
+
+// [POST] /api/auth/google
+app.post('/api/auth/google', async (req, res) => {
+    const { email, name, picture } = req.body;
+    if (!email) return res.status(400).json({ message: 'No Google email provided' });
+
+    try {
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Generate a secure random password since schema requires one
+            const randomPassword = crypto.randomBytes(32).toString('hex');
+            user = await User.create({
+                name,
+                email,
+                password: randomPassword,
+                avatar: picture,
+            });
+        } else if (!user.avatar && picture) {
+            // Update avatar if user exists but has none
+            user.avatar = picture;
+            await user.save();
+        }
+
+        res.json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            currency: user.currency,
+            avatar: user.avatar,
+            bio: user.bio,
+            role: `Freelancer · ${user.currency} Node`,
+            token: generateToken(user._id)
+        });
+    } catch (err) {
+        console.error("Google Auth Error:", err);
+        res.status(401).json({ message: 'Invalid or expired Google token' });
     }
 });
 
