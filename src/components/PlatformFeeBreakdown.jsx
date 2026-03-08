@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Network, ArrowRight } from 'lucide-react';
+import { Network } from 'lucide-react';
 
 const NODES = [
     { id: 'client', label: 'Client (USD)', x: 10, y: 50, color: 'var(--bl)' },
@@ -45,14 +45,12 @@ export default function PlatformFeeBreakdown() {
                 <span className="badge badge-c">Blockchain</span>
             </div>
 
-            {/* Network Animation Area */}
             <div style={{
                 position: 'relative', height: 220,
                 background: 'rgba(0,0,0,.25)', borderRadius: 16,
                 border: '1px solid rgba(255,255,255,.05)',
                 marginBottom: 24, overflow: 'hidden'
             }}>
-                {/* Animated Lines */}
                 <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
                     <defs>
                         <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -85,7 +83,6 @@ export default function PlatformFeeBreakdown() {
                     })}
                 </svg>
 
-                {/* Nodes */}
                 {NODES.map((node, i) => (
                     <motion.div
                         key={node.id}
@@ -116,7 +113,6 @@ export default function PlatformFeeBreakdown() {
                 ))}
             </div>
 
-            {/* Fee Comparison Bars */}
             <div>
                 <motion.div
                     style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--t2)', marginBottom: 12 }}

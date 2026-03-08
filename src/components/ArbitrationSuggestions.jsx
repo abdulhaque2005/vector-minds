@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Info, TrendingDown } from 'lucide-react';
+import { Target, Zap, Globe2 } from 'lucide-react';
 import { useExchangeRates } from '../hooks/useExchangeRates';
 
 const RANK = [
@@ -22,58 +23,105 @@ const BAR_COLORS = [
 ];
 
 const FEE_COLOR = (pct) =>
-    pct < 1.5 ? 'var(--gl)' : pct < 3 ? 'var(--al)' : 'var(--rl)';
+    pct < 1.5 ? '#34d399' : pct < 3 ? '#fbbf24' : '#ef4444';
 
-export default function ArbitrationSuggestions({ fromCurrency = 'INR', amount = 50000 }) {
-    const { getArbitration } = useExchangeRates();
-    const all = getArbitration(amount, fromCurrency);
-    const results = all.slice(0, 10);
+export default function ArbitrationSuggestions() {
+    const { getArbitration, currencies, loading } = useExchangeRates();
+    const [amount, setAmount] = useState(50000);
+    const [baseCurrency, setBaseCurrency] = useState('INR');
+
+    if (loading || !currencies || currencies.length === 0) return null;
+
+    const all = getArbitration(amount, baseCurrency);
+    const results = all;
     const best = results[0];
 
     if (!best) return null;
 
     return (
         <motion.div
-            className="card card-shine"
-            style={{ padding: 28 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.5 }}
+            style={{
+                background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: 24, padding: 32,
+                boxShadow: '0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+                position: 'relative', overflow: 'hidden'
+            }}
         >
-            {/* Header */}
-            <div className="flex aic jcb mb-5">
+            <div style={{ position: 'absolute', top: -100, right: -50, width: 250, height: 250, background: 'rgba(16, 185, 129, 0.1)', filter: 'blur(70px)', borderRadius: '50%' }} />
+            <div style={{ position: 'absolute', bottom: -50, left: -50, width: 150, height: 150, background: 'rgba(56, 189, 248, 0.1)', filter: 'blur(60px)', borderRadius: '50%' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, position: 'relative', zIndex: 1 }}>
                 <div>
-                    <div className="flex aic gap-3 mb-1">
-                        <Trophy size={18} style={{ color: 'var(--al)' }} />
-                        <span className="fw-8 t1 fs-lg">Arbitration Optimizer</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <div style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)', padding: 8, borderRadius: 10, display: 'flex' }}>
+                            <Target size={20} color="white" />
+                        </div>
+                        <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', margin: 0, letterSpacing: '-0.5px' }}>Arbitration Optimizer</h3>
                     </div>
-                    <div className="fs-xs t3">
-                        Effective USD after platform fees ·{' '}
-                        <strong style={{ color: 'var(--t2)', fontFamily: 'var(--mono)' }}>
-                            {amount.toLocaleString()} {fromCurrency}
-                        </strong>
+                    <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0, fontWeight: 500 }}>Find the absolute best currency to request payment in across 100+ options.</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(16, 185, 129, 0.1)', padding: '6px 12px', borderRadius: 20, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                    <Globe2 size={14} color="#34d399" />
+                    <span style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Global Scan Active</span>
+                </div>
+            </div>
+
+            <div style={{
+                background: 'rgba(0,0,0,0.4)', padding: 20, borderRadius: 20, marginBottom: 20,
+                border: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 1,
+                display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center'
+            }}>
+                <div style={{ flex: '1 1 250px' }}>
+                    <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>Total Invoice Amount</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <input
+                            type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value) || 0)}
+                            style={{
+                                flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
+                                padding: '12px 16px', borderRadius: 12, color: '#fff', fontSize: '1.2rem',
+                                fontWeight: 800, outline: 'none', fontFamily: 'var(--mono)', transition: 'border-color 0.2s'
+                            }}
+                            onFocus={e => e.target.style.borderColor = '#10b981'}
+                            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                        />
+                        <select
+                            value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)}
+                            style={{
+                                width: 100, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
+                                padding: '12px', borderRadius: 12, color: '#fff', fontSize: '1.1rem',
+                                fontWeight: 700, outline: 'none', cursor: 'pointer', appearance: 'none'
+                            }}
+                        >
+                            {currencies.map(c => <option key={c} value={c} style={{ background: '#0f172a' }}>{c}</option>)}
+                        </select>
                     </div>
                 </div>
-                <span className="badge badge-g">AI Ranked</span>
             </div>
 
-            {/* Column headers */}
             <div style={{
-                display: 'grid', gridTemplateColumns: '32px 90px 1fr 80px 52px 52px',
-                gap: 10, padding: '0 4px 8px',
-                borderBottom: '1px solid rgba(255,255,255,.06)',
-                marginBottom: 8,
+                display: 'grid', gridTemplateColumns: 'minmax(30px, auto) minmax(130px, 1fr) 2fr minmax(100px, 1fr) minmax(60px, auto) minmax(60px, auto)',
+                gap: 16, padding: '0 12px 12px',
+                borderBottom: '1px solid rgba(255,255,255,.08)',
+                marginBottom: 12, position: 'relative', zIndex: 1
             }}>
-                <span className="fs-xs t4 upper">#</span>
-                <span className="fs-xs t4 upper">Currency</span>
-                <span className="fs-xs t4 upper">Efficiency</span>
-                <span className="fs-xs t4 upper tr">Eff. USD</span>
-                <span className="fs-xs t4 upper tr">Fee</span>
-                <span className="fs-xs t4 upper tr">vs Best</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Rank</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Asset</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Yield Efficiency</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px', textAlign: 'right' }}>Net USD</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px', textAlign: 'right' }}>Tax/Fee</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px', textAlign: 'right' }}>Delta</span>
             </div>
 
-            {/* Rows */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{
+                display: 'flex', flexDirection: 'column', gap: 6, position: 'relative', zIndex: 1,
+                maxHeight: '380px', overflowY: 'auto', paddingRight: '8px',
+                scrollbarWidth: 'thin', scrollbarColor: 'rgba(16, 185, 129, 0.4) rgba(0,0,0,0.2)'
+            }}>
                 {results.map((item, i) => {
                     const isBest = i === 0;
                     const barPct = best.usdEquivalent > 0
@@ -87,67 +135,62 @@ export default function ArbitrationSuggestions({ fromCurrency = 'INR', amount = 
                             key={item.currency}
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: '32px 90px 1fr 80px 52px 52px',
-                                gap: 10, alignItems: 'center',
-                                padding: '8px 4px',
-                                borderRadius: 'var(--r-sm)',
-                                background: isBest ? 'rgba(5,150,105,.07)' : 'transparent',
-                                border: `1px solid ${isBest ? 'rgba(5,150,105,.2)' : 'transparent'}`,
+                                gridTemplateColumns: 'minmax(30px, auto) minmax(130px, 1fr) 2fr minmax(100px, 1fr) minmax(60px, auto) minmax(60px, auto)',
+                                gap: 16, alignItems: 'center',
+                                padding: '12px',
+                                borderRadius: 16,
+                                background: isBest ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.02)',
+                                border: `1px solid ${isBest ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.03)'}`,
                                 transition: 'all .2s',
+                                cursor: 'default'
                             }}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.04 }}
-                            whileHover={{ background: isBest ? 'rgba(5,150,105,.1)' : 'rgba(255,255,255,.03)', x: 2 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: Math.min(i * 0.02, 0.5) }}
+                            whileHover={{ background: isBest ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,.05)', scale: 1.01 }}
                         >
-                            {/* Rank */}
                             <div style={{
-                                width: 24, height: 24, borderRadius: 7,
+                                width: 28, height: 28, borderRadius: 8,
                                 background: i < 3 ? RANK[i].bg : 'rgba(255,255,255,.05)',
-                                color: i < 3 ? RANK[i].color : 'var(--t4)',
+                                color: i < 3 ? RANK[i].color : '#94a3b8',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: i < 3 ? '.9rem' : '.7rem', fontWeight: 800,
+                                fontSize: i < 3 ? '1rem' : '0.8rem', fontWeight: 800,
                             }}>
                                 {i < 3 ? RANK[i].icon : i + 1}
                             </div>
 
-                            {/* Currency */}
                             <div>
-                                <div className="fw-7 t1" style={{ fontSize: '.875rem' }}>
-                                    {item.meta?.flag || '🌐'} {item.currency}
+                                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <span>{item.meta?.flag || '🌐'}</span> {item.currency}
                                 </div>
-                                <div style={{ fontSize: '.6rem', color: 'var(--t4)', marginTop: 1 }}>
+                                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2, fontWeight: 600 }}>
                                     {item.meta?.name || item.currency}
                                 </div>
                             </div>
 
-                            {/* Bar */}
-                            <div style={{ height: 5, background: 'rgba(255,255,255,.06)', borderRadius: 3, overflow: 'hidden' }}>
+                            <div style={{ height: 6, background: 'rgba(255,255,255,.04)', borderRadius: 4, overflow: 'hidden' }}>
                                 <motion.div
-                                    style={{ height: '100%', borderRadius: 3, background: BAR_COLORS[i % BAR_COLORS.length] }}
+                                    style={{ height: '100%', borderRadius: 4, background: BAR_COLORS[i % BAR_COLORS.length], boxShadow: '0 0 10px rgba(255,255,255,0.2)' }}
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.min(100, barPct)}%` }}
-                                    transition={{ duration: 0.9, delay: i * 0.04 }}
+                                    transition={{ duration: 0.9, delay: Math.min(i * 0.02, 0.5) }}
                                 />
                             </div>
 
-                            {/* Effective USD */}
                             <div style={{ textAlign: 'right' }}>
-                                <div className="mono fw-8 t1" style={{ fontSize: '.875rem' }}>
+                                <div style={{ fontSize: '1.05rem', fontWeight: 800, fontFamily: 'var(--mono)', color: isBest ? '#34d399' : '#e2e8f0' }}>
                                     ${item.usdEquivalent.toFixed(2)}
                                 </div>
                             </div>
 
-                            {/* Fee % */}
-                            <div style={{ textAlign: 'right', fontSize: '.75rem', fontWeight: 700, color: FEE_COLOR(item.spreadPct) }}>
+                            <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 800, color: FEE_COLOR(item.spreadPct) }}>
                                 -{item.spreadPct}%
                             </div>
 
-                            {/* vs Best */}
-                            <div style={{ textAlign: 'right', fontSize: '.75rem', fontWeight: 700, fontFamily: 'var(--mono)' }}>
+                            <div style={{ textAlign: 'right', fontSize: '0.8rem', fontWeight: 800, fontFamily: 'var(--mono)' }}>
                                 {isBest
-                                    ? <span style={{ color: 'var(--gl)', fontSize: '.6rem', fontWeight: 800, letterSpacing: '.04em' }}>BEST</span>
-                                    : <span style={{ color: 'var(--rl)' }}>{vsBest}%</span>
+                                    ? <span style={{ color: '#34d399', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '.05em', background: 'rgba(52, 211, 153, 0.2)', padding: '2px 6px', borderRadius: 6 }}>BEST</span>
+                                    : <span style={{ color: '#ef4444' }}>{vsBest}%</span>
                                 }
                             </div>
                         </motion.div>
@@ -155,20 +198,18 @@ export default function ArbitrationSuggestions({ fromCurrency = 'INR', amount = 
                 })}
             </div>
 
-            {/* Info footer */}
             <div style={{
-                marginTop: 16, padding: '12px 14px',
-                background: 'rgba(37,99,235,.07)', border: '1px solid rgba(37,99,235,.18)',
-                borderRadius: 10, display: 'flex', gap: 8, alignItems: 'flex-start',
+                marginTop: 24, padding: 20, background: 'linear-gradient(90deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.05))',
+                borderLeft: '4px solid #10b981', borderRadius: '0 16px 16px 0', display: 'flex', gap: 16, alignItems: 'center', position: 'relative', zIndex: 1
             }}>
-                <Info size={13} style={{ color: 'var(--bl)', flexShrink: 0, marginTop: 1 }} />
-                <div style={{ fontSize: '.8125rem', color: 'var(--t3)', lineHeight: 1.6 }}>
-                    <strong style={{ color: 'var(--bl)' }}>Fee column</strong> = platform spread + SWIFT/Wise costs.
-                    Accept in <strong style={{ color: 'var(--t1)' }}>{best.currency}</strong> for max effective value ≈{' '}
-                    <strong style={{ color: 'var(--gl)' }}>${best.usdEquivalent.toFixed(2)} USD</strong> after fees.
-                    {best.spreadPct <= 1 && (
-                        <span style={{ color: 'var(--gl)', marginLeft: 6 }}>✓ Lowest fee transfer available.</span>
-                    )}
+                <div style={{ background: '#10b981', minWidth: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(16, 185, 129, 0.5)' }}>
+                    <Zap size={20} color="white" />
+                </div>
+                <div>
+                    <div style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 500, lineHeight: 1.5 }}>
+                        <strong style={{ color: '#f8fafc' }}>Tax/Fee Metric:</strong> Estimates platform spread + SWIFT/Wise costs. If you invoice your client for <strong style={{ color: '#f8fafc' }}>{amount} {baseCurrency}</strong>, you will retain maximum value if they pay in <strong style={{ color: '#34d399', fontSize: '1rem' }}>{best.currency}</strong> (yielding ≈ <strong style={{ color: '#34d399', fontSize: '1rem' }}>${best.usdEquivalent.toFixed(2)} USD</strong> to your bank account).
+                        {best.spreadPct <= 1.5 && <div style={{ color: '#34d399', marginTop: 4, fontWeight: 700, fontSize: '0.8rem' }}>✓ Optimal routing path available (Loss &lt; 1.5%).</div>}
+                    </div>
                 </div>
             </div>
         </motion.div>

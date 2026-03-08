@@ -49,7 +49,6 @@ export default function EarningsChart({ fromCur = 'INR', toCur = 'USD' }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
         >
-            {/* Header */}
             <div className="flex aic jcb mb-5" style={{ flexWrap: 'wrap', gap: 12 }}>
                 <div>
                     <div className="fw-8 t1 fs-lg mb-1">Earnings Fluctuation</div>
@@ -66,7 +65,6 @@ export default function EarningsChart({ fromCur = 'INR', toCur = 'USD' }) {
                 </div>
             </div>
 
-            {/* Stats */}
             <div className="chart-stats">
                 <div className="cstat">
                     <div className="cstat-lbl">Rate Now</div>
@@ -88,7 +86,6 @@ export default function EarningsChart({ fromCur = 'INR', toCur = 'USD' }) {
                 </div>
             </div>
 
-            {/* Chart */}
             <div className="chart-area">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -113,7 +110,6 @@ export default function EarningsChart({ fromCur = 'INR', toCur = 'USD' }) {
                 </ResponsiveContainer>
             </div>
 
-            {/* Footer */}
             <div className="chart-foot">
                 <div className="flex gap-4">
                     <div className="legend-item">

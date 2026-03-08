@@ -39,7 +39,7 @@ export default function RiskIndicator() {
                 <span className="badge badge-v">Live</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
+            <div className="risk-grid" style={{ gap: 8 }}>
                 {CURRENCIES.map((cur, i) => {
                     const { score, level } = getRisk(cur);
                     const cfg = RISK_CONFIG[level];

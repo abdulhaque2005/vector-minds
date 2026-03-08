@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Keyboard, Cpu, RotateCcw, Play } from 'lucide-react';
+import { Keyboard, Cpu, RotateCcw } from 'lucide-react';
 
 const TEXTS = [
     "Currency conversion tools are essential for modern freelancers working with international clients. Always negotiate in a stable currency to protect your earnings from unexpected exchange rate volatility.",
@@ -19,7 +19,6 @@ export default function PerformanceStats() {
     const inputRef = useRef(null);
     const timerRef = useRef(null);
 
-    /* ── Timer ── */
     useEffect(() => {
         if (started && !done && timeLeft > 0) {
             timerRef.current = setInterval(() => setTimeLeft(p => p - 1), 1000);
@@ -27,8 +26,7 @@ export default function PerformanceStats() {
             finishTest(typed);
         }
         return () => clearInterval(timerRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [started, timeLeft, done]);
+    }, [started, timeLeft, done, finishTest, typed]);
 
     const finishTest = useCallback((finalTyped) => {
         clearInterval(timerRef.current);
@@ -44,28 +42,23 @@ export default function PerformanceStats() {
         const calcAcc = finalTyped.length > 0 ? Math.round((correct / finalTyped.length) * 100) : 0;
         setWpm(calcWpm);
         setAcc(calcAcc);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [text, timeLeft]);
 
-    /* ── Typing handler ── */
     const handleChange = (e) => {
         if (done) return;
         const val = e.target.value;
         if (!started && val.length > 0) setStarted(true);
 
-        // Stop if they try to type more than the text
         if (val.length > text.length) return;
 
         setTyped(val);
 
-        // Calculate live accuracy
         let ok = 0;
         for (let i = 0; i < val.length; i++) {
             if (val[i] === text[i]) ok++;
         }
         setAcc(val.length > 0 ? Math.round((ok / val.length) * 100) : 100);
 
-        // Auto finish if they reached the end
         if (val.length === text.length) finishTest(val);
     };
 
@@ -76,7 +69,6 @@ export default function PerformanceStats() {
         setTimeout(() => inputRef.current?.focus(), 150);
     };
 
-    /* ── Live stats ── */
     const elapsed = 60 - timeLeft;
     const words = typed.trim().split(/\s+/).filter(Boolean).length;
     const liveWpm = elapsed > 0 ? Math.round((words / elapsed) * 60) : 0;
@@ -90,7 +82,6 @@ export default function PerformanceStats() {
             <div className="perf-topbar" />
             <div className="perf-body">
 
-                {/* Header */}
                 <div className="perf-head">
                     <div>
                         <div className="perf-title">
@@ -110,7 +101,6 @@ export default function PerformanceStats() {
                     </div>
                 </div>
 
-                {/* Live Stats */}
                 <div className="stats-row mb-4">
                     <div className="stat-box">
                         <div className="stat-box-val" style={{ color: wpmColor }}>
@@ -130,7 +120,6 @@ export default function PerformanceStats() {
 
                 <AnimatePresence mode="wait">
                     {done ? (
-                        /* ── Results ── */
                         <motion.div
                             key="done"
                             initial={{ opacity: 0, scale: .95 }}
@@ -173,10 +162,8 @@ export default function PerformanceStats() {
                             </div>
                         </motion.div>
                     ) : (
-                        /* ── Typing Area ── */
                         <motion.div key="typing" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
 
-                            {/* Text Reference Display */}
                             <div style={{
                                 padding: '24px',
                                 background: 'rgba(255,255,255,0.03)',
@@ -201,7 +188,6 @@ export default function PerformanceStats() {
                                 })}
                             </div>
 
-                            {/* Standard Textarea Input */}
                             <textarea
                                 ref={inputRef}
                                 value={typed}
@@ -228,7 +214,6 @@ export default function PerformanceStats() {
                                 autoComplete="off" spellCheck="false" autoCorrect="off" autoCapitalize="off"
                             />
 
-                            {/* Progress bar */}
                             <div className="prog-row" style={{ marginTop: 20 }}>
                                 <span style={{ fontSize: '.75rem', color: 'var(--t3)', fontFamily: 'var(--mono)' }}>{pct}%</span>
                                 <div className="prog-bar-wrap">

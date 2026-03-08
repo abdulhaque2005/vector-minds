@@ -14,7 +14,6 @@ export default function Background3D() {
         canvas.width = W;
         canvas.height = H;
 
-        // Create stars
         const STAR_COUNT = 300;
         const stars = Array.from({ length: STAR_COUNT }, () => ({
             x: Math.random() * W,
@@ -26,7 +25,6 @@ export default function Background3D() {
             twinkleDir: Math.random() > 0.5 ? 1 : -1,
         }));
 
-        // Shooting stars
         const shootingStars = [];
         const addShootingStar = () => {
             if (shootingStars.length < 3) {
@@ -45,7 +43,6 @@ export default function Background3D() {
         const draw = () => {
             ctx.clearRect(0, 0, W, H);
 
-            // Draw stars
             for (const s of stars) {
                 s.opacity += s.twinkleSpeed * s.twinkleDir;
                 if (s.opacity > 0.9 || s.opacity < 0.1) s.twinkleDir *= -1;
@@ -55,12 +52,10 @@ export default function Background3D() {
                 ctx.fillStyle = `rgba(180, 150, 255, ${s.opacity})`;
                 ctx.fill();
 
-                // Slow drift down
                 s.y += s.speed * 0.1;
                 if (s.y > H) { s.y = 0; s.x = Math.random() * W; }
             }
 
-            // Draw shooting stars
             for (let i = shootingStars.length - 1; i >= 0; i--) {
                 const ss = shootingStars[i];
                 const grad = ctx.createLinearGradient(

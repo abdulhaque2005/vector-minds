@@ -10,7 +10,6 @@ const QUICK = [
     "Is USD risky right now?",
 ];
 
-// Render markdown-like bold **text**
 function MsgText({ text }) {
     const parts = text.split(/\*\*(.*?)\*\*/g);
     return (
@@ -44,7 +43,6 @@ export default function AIAssistant({ fromCur = 'INR' }) {
 
     return (
         <>
-            {/* Floating Trigger */}
             <motion.button
                 className="ai-fab"
                 onClick={() => { setOpen(o => !o); setTimeout(() => inputRef.current?.focus(), 300); }}
@@ -67,7 +65,6 @@ export default function AIAssistant({ fromCur = 'INR' }) {
                 {!open && <span className="ai-fab-badge">{messages.filter(m => m.role === 'assistant').length}</span>}
             </motion.button>
 
-            {/* Chat Panel */}
             <AnimatePresence>
                 {open && (
                     <motion.div
@@ -77,7 +74,6 @@ export default function AIAssistant({ fromCur = 'INR' }) {
                         exit={{ opacity: 0, x: 60, scale: 0.92 }}
                         transition={{ type: 'spring', stiffness: 60, damping: 16 }}
                     >
-                        {/* Header */}
                         <div className="ai-head">
                             <div className="ai-head-left">
                                 <div className="ai-avatar">
@@ -98,7 +94,6 @@ export default function AIAssistant({ fromCur = 'INR' }) {
                             </div>
                         </div>
 
-                        {/* Messages */}
                         <div className="ai-messages">
                             {messages.map((msg, i) => (
                                 <motion.div
@@ -124,7 +119,6 @@ export default function AIAssistant({ fromCur = 'INR' }) {
                                 </motion.div>
                             ))}
 
-                            {/* Typing Indicator */}
                             {typing && (
                                 <motion.div
                                     className="ai-msg assistant"
@@ -140,7 +134,6 @@ export default function AIAssistant({ fromCur = 'INR' }) {
                             <div ref={bottomRef} />
                         </div>
 
-                        {/* Quick Replies */}
                         <div className="ai-quick">
                             {QUICK.map(q => (
                                 <button
@@ -154,7 +147,6 @@ export default function AIAssistant({ fromCur = 'INR' }) {
                             ))}
                         </div>
 
-                        {/* Input */}
                         <div className="ai-input-row">
                             <input
                                 ref={inputRef}

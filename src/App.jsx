@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, PlayCircle, Globe, Zap, TrendingUp, ShieldCheck } from 'lucide-react';
+import { ArrowRight, PlayCircle, Globe, Zap, TrendingUp } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Background3D from './components/Background3D';
 import DashboardCards from './components/DashboardCards';
@@ -19,6 +19,8 @@ import LiveMarketDepth from './components/LiveMarketDepth';
 import LiveActivityFeed from './components/LiveActivityFeed';
 import LoginPage from './components/LoginPage';
 import ProfileModal from './components/ProfileModal';
+import SmartInvoiceGenerator from './components/SmartInvoiceGenerator';
+import { useExchangeRates } from './hooks/useExchangeRates';
 
 const fade = {
   hidden: { opacity: 0, y: 14 },
@@ -42,8 +44,7 @@ function SH({ bar, title, desc, badge, id }) {
   );
 }
 
-/* ─── Feature Card (homepage only) ───────── */
-function FeatureCard({ icon, title, desc, tab, clr, bg, onClick }) {
+function FeatureCard({ icon, title, desc, clr, bg, onClick }) {
   return (
     <motion.button
       whileHover={{ y: -8, scale: 1.03, boxShadow: `0 12px 30px ${bg.replace('.12)', '.3)')}` }}
@@ -69,17 +70,14 @@ function FeatureCard({ icon, title, desc, tab, clr, bg, onClick }) {
   );
 }
 
-/* ══════════════════════════════════
-   DASHBOARD — unique landing content
-════════════════════════════════════ */
 function Dashboard({ setTab }) {
+  const { getArbitration, getRate, getHistory } = useExchangeRates();
+
   return (
     <motion.div variants={fade} initial="hidden" animate="visible" exit="exit">
 
-      {/* Hero — premium split layout */}
       <motion.div variants={child} className="hero-wrap">
 
-        {/* Left: Text */}
         <div className="hero-left">
           <motion.div
             className="hero-chip"
@@ -138,36 +136,17 @@ function Dashboard({ setTab }) {
             </motion.button>
           </motion.div>
 
-          {/* Quick trust badges */}
-          <motion.div
-            className="hero-badges"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            {['🔒 Bank-level Security', '⚡ 3s Rate Updates', '🌍 100+ Currencies', '🤖 AI Ranked'].map((b, i) => (
-              <motion.span
-                key={b}
-                className="hero-badge"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + i * 0.1, type: 'spring' }}
-                whileHover={{ scale: 1.1, y: -2 }}
-              >
-                {b}
-              </motion.span>
-            ))}
-          </motion.div>
         </div>
+      </motion.div>
 
-        {/* Right: Live stat cards */}
+      <motion.div variants={child} className="two-col smooth-grid" style={{ marginBottom: 60, alignItems: 'start' }}>
         <motion.div
-          className="hero-right"
-          initial={{ opacity: 0, x: 30 }}
+          className="hero-right ani-slide-right"
+          initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 55 }}
+          style={{ marginTop: 0, maxWidth: '100%' }}
         >
-          {/* Mini stats */}
           <div className="hero-mini-stats">
             {[
               { val: '120+', lbl: 'Currencies', clr: 'var(--vl)' },
@@ -201,29 +180,24 @@ function Dashboard({ setTab }) {
               <span className="hero-panel-title">Live Arbitration Feed</span>
               <span className="badge badge-g" style={{ fontSize: '.55rem', padding: '2px 7px' }}>LIVE</span>
             </div>
-            {[
-              { flag: '🇺🇸', cur: 'USD', gain: '+4.83%', eff: '$541.28', clr: 'var(--gl)', rank: 1 },
-              { flag: '🇪🇺', cur: 'EUR', gain: '+4.18%', eff: '$537.90', clr: 'var(--bl)', rank: 2 },
-              { flag: '🇬🇧', cur: 'GBP', gain: '+4.01%', eff: '$536.75', clr: 'var(--vl)', rank: 3 },
-              { flag: '🇸🇬', cur: 'SGD', gain: '+3.96%', eff: '$536.41', clr: 'var(--c)', rank: 4 },
-            ].map((r, i) => (
+            {getArbitration(50000, 'INR').slice(0, 4).map((r, i) => (
               <motion.div
-                key={r.cur}
+                key={r.currency}
                 className="hero-arb-row"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7 + i * 0.1 }}
                 whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }}
               >
-                <span className="hero-arb-rank">{r.rank}</span>
-                <span style={{ fontSize: '1.1rem' }}>{r.flag}</span>
+                <span className="hero-arb-rank">{i + 1}</span>
+                <span style={{ fontSize: '1.1rem' }}>{r.meta?.flag || '🌐'}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 800, fontSize: '.9rem', color: 'var(--t1)' }}>{r.cur}</div>
+                  <div style={{ fontWeight: 800, fontSize: '.9rem', color: 'var(--t1)' }}>{r.currency}</div>
                   <div style={{ fontSize: '.65rem', color: 'var(--t4)', marginTop: 1 }}>Effective USD</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 800, fontSize: '.875rem', color: 'var(--t1)', fontFamily: 'var(--mono)' }}>{r.eff}</div>
-                  <div style={{ fontSize: '.65rem', fontWeight: 700, color: r.clr }}>{r.gain} vs base</div>
+                  <div style={{ fontWeight: 800, fontSize: '.875rem', color: 'var(--t1)', fontFamily: 'var(--mono)' }}>${r.usdEquivalent.toFixed(2)}</div>
+                  <div style={{ fontSize: '.65rem', fontWeight: 700, color: 'var(--gl)' }}>Real Live API Data</div>
                 </div>
               </motion.div>
             ))}
@@ -232,14 +206,14 @@ function Dashboard({ setTab }) {
             </div>
           </motion.div>
         </motion.div>
+
+        <div id="dash-stats" className="ani-slide-up" style={{ animationDelay: '0.15s' }}>
+          <DashboardCards getRate={getRate} getHistory={getHistory} />
+        </div>
       </motion.div>
 
-      {/* Stat cards */}
-      <motion.div variants={child} id="dash-stats"><DashboardCards /></motion.div>
-
-      {/* Feature nav cards */}
       <motion.div variants={child} style={{ marginBottom: 40 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+        <div className="features-grid" style={{ gap: 14 }}>
           <FeatureCard icon={<Globe size={22} color="var(--bl)" />} title="Converter" desc="Multi-currency live conversion with quick amounts" tab="converter" clr="var(--bl)" bg="rgba(37,99,235,.12)" onClick={() => setTab('converter')} />
           <FeatureCard icon={<TrendingUp size={22} color="var(--gl)" />} title="Analytics" desc="Exchange rate charts & AI trend forecasts" tab="analytics" clr="var(--gl)" bg="rgba(5,150,105,.12)" onClick={() => setTab('analytics')} />
           <FeatureCard icon={<PlayCircle size={22} color="var(--c)" />} title="Simulator" desc="Model earnings across 10+ currency scenarios" tab="simulator" clr="var(--c)" bg="rgba(6,182,212,.12)" onClick={() => setTab('simulator')} />
@@ -247,7 +221,6 @@ function Dashboard({ setTab }) {
         </div>
       </motion.div>
 
-      {/* Live Activity Feed — full width */}
       <motion.div variants={child} style={{ marginBottom: 44 }} className="ani-slide-up">
         <SH bar="sec-acc-v" title="Global Network Pipeline" desc="Real-time arbitration execution routing from freelance transactions worldwide." badge={{ cls: 'badge-c', text: 'Live Feed' }} />
         <div style={{ height: 340 }}>
@@ -255,7 +228,6 @@ function Dashboard({ setTab }) {
         </div>
       </motion.div>
 
-      {/* Heatmap + Alerts */}
       <motion.div variants={child}>
         <div className="two-col smooth-grid">
           <div className="ani-slide-up">
@@ -272,9 +244,6 @@ function Dashboard({ setTab }) {
   );
 }
 
-/* ══════════════════════════════════
-   CONVERTER — full conversion suite
-════════════════════════════════════ */
 function ConverterPage() {
   return (
     <motion.div variants={fade} initial="hidden" animate="visible" exit="exit">
@@ -282,22 +251,22 @@ function ConverterPage() {
         <SH bar="sec-acc-v" title="Live Currency Converter" desc="Convert across 100+ currencies with real-time data" badge={{ cls: 'badge-v', text: 'Real-Time' }} />
         <CurrencyConverter />
       </motion.div>
-      <motion.div variants={child}>
+      <motion.div variants={child} style={{ marginBottom: 44 }}>
         <SH bar="sec-acc-g" title="Arbitration Optimizer" desc="Best currency ranked by effective USD after platform fees" badge={{ cls: 'badge-g', text: 'AI Ranked' }} />
         <ArbitrationSuggestions fromCurrency="INR" amount={50000} />
+      </motion.div>
+      <motion.div variants={child}>
+        <SH bar="sec-acc-v" title="Smart Invoice Generator" desc="Calculate the exact amount to bill to get your desired payout" badge={{ cls: 'badge-r', text: 'Anti-Fee Engine' }} />
+        <SmartInvoiceGenerator />
       </motion.div>
     </motion.div>
   );
 }
 
-/* ══════════════════════════════════
-   ANALYTICS — charts + risk only
-════════════════════════════════════ */
 function AnalyticsPage() {
   return (
     <motion.div variants={fade} initial="hidden" animate="visible" exit="exit">
 
-      {/* Two charts side by side */}
       <motion.div variants={child} style={{ marginBottom: 44 }} className="ani-slide-up">
         <SH bar="sec-acc-b" title="Exchange Rate Charts" desc="Historical trends across currency pairs — 24h · 7d · 30d" />
         <div className="two-col smooth-grid">
@@ -306,7 +275,6 @@ function AnalyticsPage() {
         </div>
       </motion.div>
 
-      {/* Risk radar and AI Prediction — full width splits */}
       <motion.div variants={child} style={{ marginBottom: 44 }} className="two-col smooth-grid">
         <div className="ani-slide-up">
           <SH bar="sec-acc-g" title="Currency Risk Radar" desc="Volatility scores based on market conditions" badge={{ cls: 'badge-g', text: 'Live' }} />
@@ -317,7 +285,6 @@ function AnalyticsPage() {
         </div>
       </motion.div>
 
-      {/* AI Alerts — full width */}
       <motion.div variants={child}>
         <SH bar="sec-acc-a" title="AI Predictive Alerts" desc="Smart notifications for rate changes before they happen" badge={{ cls: 'badge-a', text: 'AI Model' }} />
         <PredictiveTrend />
@@ -326,20 +293,15 @@ function AnalyticsPage() {
   );
 }
 
-/* ══════════════════════════════════
-   SIMULATOR — earnings modeling only
-════════════════════════════════════ */
 function SimulatorPage() {
   return (
     <motion.div variants={fade} initial="hidden" animate="visible" exit="exit">
 
-      {/* Simulator tool */}
       <motion.div variants={child} style={{ marginBottom: 44 }}>
         <SH bar="sec-acc-c" title="Earnings Simulator" desc="Enter your invoice amount and see real income across currencies after fees" badge={{ cls: 'badge-c', text: 'Scenario Tool' }} />
         <EarningsSimulator />
       </motion.div>
 
-      {/* Transaction Routing / Fee Breakdown */}
       <motion.div variants={child}>
         <SH bar="sec-acc-g" title="Platform Fee Routing" desc="How our AI engine achieves 0% fees via decentralized routing" badge={{ cls: 'badge-g', text: 'Smart Contract' }} />
         <PlatformFeeBreakdown />
@@ -348,9 +310,6 @@ function SimulatorPage() {
   );
 }
 
-/* ══════════════════════════════════
-   PERFORMANCE — typing test only
-════════════════════════════════════ */
 function PerformancePage() {
   return (
     <motion.div variants={fade} initial="hidden" animate="visible" exit="exit">
@@ -362,9 +321,6 @@ function PerformancePage() {
   );
 }
 
-/* ════════════════════════════════
-   ROOT
-══════════════════════════════════  */
 export default function App() {
   const [tab, setTab] = useState('dashboard');
   const [user, setUser] = useState(() => {
@@ -426,10 +382,8 @@ export default function App() {
         </footer>
       </div>
 
-      {/* AI Assistant */}
       <AIAssistant fromCur={user?.currency || 'INR'} />
 
-      {/* Profile Modal */}
       <AnimatePresence>
         {showProfile && (
           <ProfileModal

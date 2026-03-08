@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-// 100+ world currencies
 const CURRENCIES = [
     'USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'JPY', 'BRL', 'SGD', 'AED',
     'CHF', 'CNY', 'MXN', 'KRW', 'THB', 'ZAR', 'SEK', 'NOK', 'DKK', 'HKD',
@@ -16,7 +15,6 @@ const CURRENCIES = [
     'PAB', 'BSD', 'BZD', 'BMD', 'FJD', 'PGK', 'WST', 'VUV', 'SBD', 'TOP',
 ];
 
-// Stable fallback (all vs USD)
 const FALLBACK = {
     USD: 1, EUR: 0.924, GBP: 0.792, INR: 83.47, AUD: 1.543, CAD: 1.358,
     JPY: 149.8, BRL: 4.974, SGD: 1.341, AED: 3.671, CHF: 0.882,
@@ -50,9 +48,6 @@ const VOLATILITY = {
     NZD: 0.0008, TRY: 0.0020, RUB: 0.0018, PKR: 0.0015, NGN: 0.0018,
 };
 
-// Real-world platform spread/fee % per currency
-// = combined bid-ask spread + SWIFT/SEPA cost + Wise/Payoneer availability
-// Lower = better deal for freelancer (more of rate preserved)
 const SPREAD = {
     USD: 0.005, EUR: 0.008, GBP: 0.010, INR: 0.015, AUD: 0.012,
     CAD: 0.011, JPY: 0.014, BRL: 0.035, SGD: 0.010, AED: 0.012,
@@ -102,47 +97,71 @@ export function useExchangeRates() {
     const [lastUpdated, setLastUpdated] = useState(null);
 
     useEffect(() => {
+        let isMounted = true;
+        let fetchTimer;
+        let simTimer;
+
         const fetchRates = async () => {
             try {
-                // Fulfills requirement: basic API endpoint on the backend to fetch current rates
                 const { data } = await axios.get('http://localhost:5000/api/rates', { timeout: 8000 });
-                if (data?.rates) {
-                    setRates({ ...FALLBACK, ...data.rates });
+                if (data?.rates && isMounted) {
+                    setRates(prev => ({ ...prev, ...data.rates }));
                     setLastUpdated(new Date());
                     setLoading(false);
                     return;
                 }
-            } catch (err) {
+            } catch {
                 console.warn("Backend rates API unreachable. Falling back directly to external API.");
             }
 
             try {
                 const { data } = await axios.get('https://open.er-api.com/v6/latest/USD', { timeout: 8000 });
-                if (data?.rates) { setRates({ ...FALLBACK, ...data.rates }); setLastUpdated(new Date()); }
-            } catch { setError('Using simulated data'); setRates(FALLBACK); }
-            finally { setLoading(false); }
+                if (data?.rates && isMounted) { 
+                    setRates(prev => ({ ...prev, ...data.rates })); 
+                    setLastUpdated(new Date()); 
+                }
+            } catch { 
+                if (isMounted) {
+                    setError('Using simulated data'); 
+                    setRates(FALLBACK); 
+                }
+            } finally { 
+                if (isMounted) setLoading(false); 
+            }
         };
+        
+        // Initial fetch
         fetchRates();
-        const t = setInterval(fetchRates, 90000);
-        return () => clearInterval(t);
-    }, []);
-
-    // Streaming micro-fluctuation every 3 seconds
-    useEffect(() => {
-        const t = setInterval(() => {
-            setRates(prev => {
-                const next = { ...prev };
-                CURRENCIES.slice(0, 30).forEach(c => {
-                    if (c !== 'USD') {
-                        const vol = VOLATILITY[c] || 0.0005;
-                        next[c] = +(prev[c] * (1 + (Math.random() - 0.5) * vol * 2)).toFixed(6);
-                    }
+        
+        // Setup intervals
+        fetchTimer = setInterval(fetchRates, 90000);
+        
+        simTimer = setInterval(() => {
+            if (isMounted) {
+                setRates(prev => {
+                    const next = { ...prev };
+                    let changed = false;
+                    CURRENCIES.slice(0, 30).forEach(c => {
+                        if (c !== 'USD' && next[c]) {
+                            const vol = VOLATILITY[c] || 0.0005;
+                            const newRate = +(next[c] * (1 + (Math.random() - 0.5) * vol * 2)).toFixed(6);
+                            if (next[c] !== newRate) {
+                                next[c] = newRate;
+                                changed = true;
+                            }
+                        }
+                    });
+                    return changed ? next : prev;
                 });
-                return next;
-            });
-            setLastUpdated(new Date());
+                setLastUpdated(new Date());
+            }
         }, 3000);
-        return () => clearInterval(t);
+
+        return () => {
+            isMounted = false;
+            clearInterval(fetchTimer);
+            clearInterval(simTimer);
+        };
     }, []);
 
     const convert = useCallback((amount, from, to) => {
@@ -150,7 +169,6 @@ export function useExchangeRates() {
         return (amount / rates[from]) * rates[to];
     }, [rates]);
 
-    // Get USD equivalent for normalization
     const toUSD = useCallback((amount, from) => {
         return (rates[from] ? amount / rates[from] : 0);
     }, [rates]);
@@ -174,17 +192,14 @@ export function useExchangeRates() {
         });
     }, [rates]);
 
-    // Arbitration: compute EFFECTIVE USD after platform spread per currency
-    // This shows real-world differences — accepting in USD is not same as KWD
-    // because KWD has high SWIFT fees/low platform support for freelancers
     const getArbitration = useCallback((amount, fromCurrency) => {
         return CURRENCIES
             .filter(c => c !== fromCurrency && rates[c])
             .map(c => {
                 const raw = +convert(amount, fromCurrency, c).toFixed(4);
-                const grossUSD = toUSD(raw, c);                    // theoretical
+                const grossUSD = toUSD(raw, c);
                 const spread = SPREAD[c] ?? SPREAD.default;
-                const effectiveUSD = +(grossUSD * (1 - spread)).toFixed(4); // after fees
+                const effectiveUSD = +(grossUSD * (1 - spread)).toFixed(4);
                 return {
                     currency: c,
                     amount: raw,

@@ -9,7 +9,7 @@ export default function EarningsSimulator() {
     const [amount, setAmount] = useState(50000);
     const [fromCur, setFromCur] = useState('INR');
     const [open, setOpen] = useState(false);
-    const { simulate, currencies, meta } = useExchangeRates();
+    const { simulate, currencies } = useExchangeRates();
 
     const results = simulate(amount, fromCur, SCENARIOS);
     const best = results.reduce((a, b) => a.amount > b.amount ? a : b, results[0] || {});
@@ -18,7 +18,6 @@ export default function EarningsSimulator() {
 
     return (
         <div className="card card-shine" style={{ overflow: 'hidden' }}>
-            {/* Toggle Header */}
             <button
                 className="sim-toggle"
                 onClick={() => setOpen(o => !o)}
@@ -53,7 +52,6 @@ export default function EarningsSimulator() {
                         <div style={{ padding: '0 24px 24px' }}>
                             <div className="divider" style={{ margin: '0 0 20px' }} />
 
-                            {/* Controls */}
                             <div className="flex aic gap-4 mb-5" style={{ flexWrap: 'wrap' }}>
                                 <div style={{ flex: 1, minWidth: 160 }}>
                                     <div className="conv-field-lbl mb-2">Your Invoice Amount</div>
@@ -79,7 +77,6 @@ export default function EarningsSimulator() {
                                 </div>
                             </div>
 
-                            {/* Results table */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                 {results.map((r, i) => {
                                     const isBest = r.currency === best?.currency;

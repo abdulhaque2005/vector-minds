@@ -18,14 +18,11 @@ export default function LiveActivityFeed() {
     useEffect(() => {
         const interval = setInterval(() => {
             setItems((prev) => {
-                // Pick a random transaction to add to the top
                 const randomTx = TRANSACTIONS[Math.floor(Math.random() * TRANSACTIONS.length)];
                 const newTx = { ...randomTx, id: Math.random().toString(), time: 'Just now' };
 
-                // Keep only 4 items
                 return [newTx, ...prev.slice(0, 3)].map((item, idx) => ({
                     ...item,
-                    // Fake update the times
                     time: idx === 0 ? 'Just now' : idx === 1 ? '12s ago' : idx === 2 ? '45s ago' : '1m ago'
                 }));
             });

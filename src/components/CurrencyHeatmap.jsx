@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useExchangeRates } from '../hooks/useExchangeRates';
 
-/* Currency strength data — strength = inverse of volatility relative to USD */
 const HEATMAP_DATA = [
     { cur: 'USD', region: 'N. America', x: 1, y: 1 },
     { cur: 'EUR', region: 'Europe', x: 3, y: 0 },
@@ -31,36 +30,29 @@ export default function CurrencyHeatmap() {
     const { getRisk, getRate, meta } = useExchangeRates();
 
     return (
-        <div className="card card-shine" style={{ padding: 24 }}>
+        <div className="card card-shine" style={{ padding: '28px 24px', background: 'rgba(5, 5, 20, 0.65)' }}>
             <div className="flex aic jcb mb-5">
-                <div>
-                    <div className="fw-8 t1" style={{ fontSize: '1.125rem', marginBottom: 3 }}>
-                        Global Currency Heatmap
-                    </div>
-                    <div className="fs-xs t3">Currency strength & volatility by region</div>
-                </div>
                 <div className="flex aic gap-3">
-                    <div className="flex aic gap-2">
-                        <div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(5,150,105,.5)' }} />
-                        <span className="fs-xs t3">Stable</span>
+                    <div className="flex aic gap-2" style={{ background: 'rgba(5,150,105,.1)', padding: '6px 14px', borderRadius: 99, border: '1px solid rgba(5,150,105,.3)' }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(5,150,105,.8)', boxShadow: '0 0 10px rgba(5,150,105,1)' }} />
+                        <span className="fs-xs t2 fw-7">Stable</span>
                     </div>
-                    <div className="flex aic gap-2">
-                        <div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(37,99,235,.5)' }} />
-                        <span className="fs-xs t3">Moderate</span>
+                    <div className="flex aic gap-2" style={{ background: 'rgba(37,99,235,.1)', padding: '6px 14px', borderRadius: 99, border: '1px solid rgba(37,99,235,.3)' }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(37,99,235,.8)', boxShadow: '0 0 10px rgba(37,99,235,1)' }} />
+                        <span className="fs-xs t2 fw-7">Moderate</span>
                     </div>
-                    <div className="flex aic gap-2">
-                        <div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(225,29,72,.5)' }} />
-                        <span className="fs-xs t3">Volatile</span>
+                    <div className="flex aic gap-2" style={{ background: 'rgba(225,29,72,.1)', padding: '6px 14px', borderRadius: 99, border: '1px solid rgba(225,29,72,.3)' }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(225,29,72,.8)', boxShadow: '0 0 10px rgba(225,29,72,1)' }} />
+                        <span className="fs-xs t2 fw-7">Volatile</span>
                     </div>
                 </div>
             </div>
 
-            {/* Grid Heatmap */}
             <div
                 style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(5, 1fr)',
-                    gap: 8,
+                    gap: 12,
                 }}
             >
                 {HEATMAP_DATA.map((item, i) => {
@@ -74,20 +66,21 @@ export default function CurrencyHeatmap() {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: i * 0.04, type: 'spring', stiffness: 80 }}
-                            whileHover={{ scale: 1.05, zIndex: 10 }}
+                            whileHover={{ scale: 1.1, zIndex: 10, y: -4, boxShadow: `0 15px 30px ${bg.replace('.18)', '.4)').replace('.25)', '.5)').replace('.2)', '.4)')}` }}
                             style={{
                                 background: bg, border: `1px solid ${border}`,
-                                borderRadius: 12, padding: '12px 10px',
+                                borderRadius: 16, padding: '16px 12px',
                                 textAlign: 'center', position: 'relative',
-                                cursor: 'default', transition: 'all .2s',
+                                cursor: 'default', transition: 'all .3s',
+                                backdropFilter: 'blur(10px)',
                             }}
                         >
-                            <div style={{ fontSize: '1.375rem', marginBottom: 4 }}>{meta[item.cur]?.flag}</div>
-                            <div style={{ fontSize: '.875rem', fontWeight: 800, color: text }}>{item.cur}</div>
-                            <div style={{ fontSize: '.625rem', color: 'var(--text-4)', marginTop: 2, fontFamily: 'var(--mono)' }}>
+                            <div style={{ fontSize: '1.6rem', marginBottom: 8, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }}>{meta[item.cur]?.flag}</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: text, letterSpacing: '-0.02em' }}>{item.cur}</div>
+                            <div style={{ fontSize: '.6rem', color: 'rgba(255,255,255,0.6)', marginTop: 4, fontFamily: 'var(--mono)', letterSpacing: '0.15em' }}>
                                 {score < 20 ? '●●●' : score < 45 ? '●●○' : score < 65 ? '●○○' : '○○○'}
                             </div>
-                            <div style={{ fontSize: '.625rem', color: 'var(--text-4)', marginTop: 1 }}>
+                            <div style={{ fontSize: '.75rem', fontWeight: 700, color: '#fff', marginTop: 6, opacity: 0.9 }}>
                                 {rate > 1 ? rate.toFixed(1) : rate.toFixed(4)}
                             </div>
                         </motion.div>
@@ -97,14 +90,17 @@ export default function CurrencyHeatmap() {
 
             <div
                 style={{
-                    marginTop: 16, padding: '10px 14px',
-                    background: 'rgba(124,58,237,.07)', border: '1px solid rgba(124,58,237,.18)',
-                    borderRadius: 10, fontSize: '.8125rem',
+                    marginTop: 24, padding: '14px 18px',
+                    background: 'rgba(124,58,237,.08)', border: '1px solid rgba(124,58,237,.25)',
+                    borderRadius: 14, fontSize: '.85rem', display: 'flex', alignItems: 'center', gap: '8px'
                 }}
             >
-                <span style={{ color: 'var(--violet-l)', fontWeight: 600 }}>🌍 Global View: </span>
-                <span style={{ color: 'var(--text-3)' }}>
-                    Dots (●) = stability. Tap any cell to get AI insights about that currency.
+                <div style={{ background: 'var(--vl)', borderRadius: '50%', width: 6, height: 6, boxShadow: '0 0 10px var(--vl)', animation: 'pulse-live 2s infinite' }} />
+                <span>
+                    <strong style={{ color: 'var(--vl)', fontWeight: 800 }}>Global Analysis Active: </strong>
+                    <span style={{ color: 'var(--t3)' }}>
+                        Strength dot indicators reflect real-time USD relativity index metrics for {new Date().toLocaleDateString()}
+                    </span>
                 </span>
             </div>
         </div>

@@ -25,7 +25,6 @@ export default function CurrencyArbitrator() {
 
     return (
         <div className="arb-grid">
-            {/* ── LEFT: Exchange Card ── */}
             <motion.div
                 className="glass exchange-card p-8"
                 style={{ minHeight: '520px' }}
@@ -36,7 +35,6 @@ export default function CurrencyArbitrator() {
             >
                 <div className="exchange-card-glow"></div>
 
-                {/* Card Header */}
                 <div className="exchange-header">
                     <div className="exchange-header-icon">
                         <Activity size={22} />
@@ -50,7 +48,6 @@ export default function CurrencyArbitrator() {
                     </div>
                 </div>
 
-                {/* FROM */}
                 <div className="exchange-field" style={{ marginBottom: '1rem' }}>
                     <div className="exchange-field-top">
                         <label className="exchange-field-label">You Request</label>
@@ -70,7 +67,6 @@ export default function CurrencyArbitrator() {
                     />
                 </div>
 
-                {/* SWAP */}
                 <div className="swap-row">
                     <button
                         className="swap-btn"
@@ -81,7 +77,6 @@ export default function CurrencyArbitrator() {
                     </button>
                 </div>
 
-                {/* TO */}
                 <div className="exchange-field" style={{ marginTop: '1rem' }}>
                     <div className="exchange-field-top">
                         <label className="exchange-field-label blue">Client Pays</label>
@@ -100,7 +95,6 @@ export default function CurrencyArbitrator() {
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="exchange-footer">
                     <span className="exchange-rate-tag">
                         1 {base} = {currentRate ? currentRate.toFixed(4) : '...'} {target}
@@ -111,7 +105,6 @@ export default function CurrencyArbitrator() {
                 </div>
             </motion.div>
 
-            {/* ── RIGHT: Analytics Chart ── */}
             <motion.div
                 className="glass chart-card p-8"
                 initial={{ opacity: 0, x: 40 }}

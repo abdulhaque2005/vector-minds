@@ -37,14 +37,12 @@ export default function LiveMarketDepth() {
                 display: 'flex', flexDirection: 'column', gap: 6,
                 position: 'relative'
             }}>
-                {/* Headers */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', fontSize: '.65rem', fontWeight: 800, color: 'var(--t4)', textTransform: 'uppercase', marginBottom: 8 }}>
                     <div style={{ textAlign: 'left' }}>Bid Size</div>
                     <div style={{ textAlign: 'center' }}>Price</div>
                     <div style={{ textAlign: 'right' }}>Ask Size</div>
                 </div>
 
-                {/* Rows */}
                 {depthData.map((d, i) => (
                     <motion.div
                         key={i}
@@ -55,7 +53,6 @@ export default function LiveMarketDepth() {
                         whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.02)' }}
                     >
 
-                        {/* Bid Bar Background */}
                         {d.type === 'bid' && (
                             <motion.div
                                 style={{ position: 'absolute', top: 0, bottom: 0, right: '66.6%', background: 'rgba(5, 150, 105, 0.15)', borderRadius: '2px 0 0 2px' }}
@@ -84,7 +81,6 @@ export default function LiveMarketDepth() {
                             {d.price.toFixed(2)}
                         </motion.div>
 
-                        {/* Ask Bar Background */}
                         {d.type === 'ask' && (
                             <motion.div
                                 style={{ position: 'absolute', top: 0, bottom: 0, left: '66.6%', background: 'rgba(225, 29, 72, 0.15)', borderRadius: '0 2px 2px 0' }}
