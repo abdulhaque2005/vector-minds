@@ -8,31 +8,25 @@ const rateLimit = require('express-rate-limit').rateLimit || require('express-ra
 const User = require('./models/User');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// Security & Middlewares
 app.use(helmet());
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '2mb' }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
+app.use(rateLimit({ windowMs: 1 * 60 * 1000, max: 1000 }));
 
-// DB connection string 
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://admin:admin@cluster0.exmple.mongodb.net/freelanceX?retryWrites=true&w=majority";
 const JWT_SECRET = process.env.JWT_SECRET || "flx_super_secret_key_2026_ninja";
 
-// Connect to MongoDB
 if (mongoose.connection.readyState === 0) {
     mongoose.connect(MONGO_URI)
-        .then(() => console.log('MongoDB Connected to Vercel Instance'))
-        .catch(err => console.error('MongoDB Connection Error:', err.message));
+        .then(() => console.log('DB Connected'))
+        .catch(err => console.error('DB Error:', err.message));
 }
 
-// Generate Token
 const generateToken = (id) => {
     return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' });
 };
 
-// Auth Middleware
 const protect = async (req, res, next) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -42,29 +36,23 @@ const protect = async (req, res, next) => {
             req.user = await User.findById(decoded.id).select('-password');
             return next();
         } catch {
-            return res.status(401).json({ message: 'Not authorized, token failed' });
+            return res.status(401).json({ message: 'Not authorized' });
         }
     }
-    if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token' });
-    }
+    if (!token) return res.status(401).json({ message: 'Not authorized' });
 };
 
-// ROUTES
 app.post('/api/auth/register', async (req, res) => {
     const { name, email, password } = req.body;
-    if (!name || !email || !password) return res.status(400).json({ message: 'Please provide all fields' });
-
+    if (!name || !email || !password) return res.status(400).json({ message: 'Missing fields' });
     try {
         const userExists = await User.findOne({ email });
-        if (userExists) return res.status(400).json({ message: 'User already exists' });
+        if (userExists) return res.status(400).json({ message: 'User exists' });
         const user = await User.create({ name, email, password });
         if (user) {
             res.status(201).json({
                 _id: user.id, name: user.name, email: user.email, currency: user.currency, avatar: user.avatar, bio: user.bio, role: `Freelancer · ${user.currency} Node`, token: generateToken(user._id)
             });
-        } else {
-            res.status(400).json({ message: 'Invalid user data' });
         }
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -77,9 +65,7 @@ app.post('/api/auth/login', async (req, res) => {
             res.json({
                 _id: user.id, name: user.name, email: user.email, currency: user.currency, avatar: user.avatar, bio: user.bio, role: `Freelancer · ${user.currency} Node`, token: generateToken(user._id)
             });
-        } else {
-            res.status(401).json({ message: 'Invalid email or password' });
-        }
+        } else { res.status(401).json({ message: 'Invalid credentials' }); }
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -97,24 +83,19 @@ app.put('/api/users/profile', protect, async (req, res) => {
             res.json({
                 _id: updatedUser._id, name: updatedUser.name, email: updatedUser.email, currency: updatedUser.currency, avatar: updatedUser.avatar, bio: updatedUser.bio, role: `Freelancer · ${updatedUser.currency} Node`, token: generateToken(updatedUser._id)
             });
-        } else { res.status(404).json({ message: 'User not found' }); }
+        }
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.get('/api/health', (req, res) => res.json({ status: 'Online.' }));
+app.get('/api/health', (req, res) => res.json({ status: 'Online' }));
 
 app.get('/api/rates', async (req, res) => {
     try {
         const base = req.query.base || 'USD';
         const fetchRes = await fetch(`https://open.er-api.com/v6/latest/${base}`);
-        if (!fetchRes.ok) throw new Error('Failed to fetch rates');
         const data = await fetchRes.json();
         res.json({ success: true, base: data.base_code, rates: data.rates });
-    } catch (err) { res.status(500).json({ success: false, message: 'Rate fetch failed', error: err.message }); }
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// For Vercel, we export the app
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => console.log(`Server running locally on port ${PORT}`));
-}
 module.exports = app;

@@ -38,7 +38,14 @@ export default function LoginPage({ onLogin }) {
             const res = await fetch(`${backendURL}${endpoint}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body
             });
-            const data = await res.json();
+            let data;
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                throw new Error('Server error: check your backend connection.');
+            }
             if (!res.ok) throw new Error(data.message || 'Authentication failed');
             localStorage.setItem('flx_user', JSON.stringify(data));
             onLogin(data);
