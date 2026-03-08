@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
+const rateLimit = require('express-rate-limit').rateLimit || require('express-rate-limit');
 const User = require('./models/User');
 
 const app = express();

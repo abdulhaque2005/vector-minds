@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
+const rateLimit = require('express-rate-limit').rateLimit || require('express-rate-limit');
 const User = require('./models/User');
 
 const app = express();
@@ -122,7 +122,7 @@ app.put('/api/users/profile', protect, async (req, res) => {
 
             // If user provided a password to change
             if (req.body.password) {
-                user.password = req.body.password;
+                user.password = req.body.password; // The pre-save hook will hash this
             }
 
             const updatedUser = await user.save();
