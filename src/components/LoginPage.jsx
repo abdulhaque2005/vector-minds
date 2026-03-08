@@ -34,7 +34,8 @@ export default function LoginPage({ onLogin }) {
             const body = mode === 'signup'
                 ? JSON.stringify({ name, email, password })
                 : JSON.stringify({ email, password });
-            const res = await fetch(`http://localhost:5000${endpoint}`, {
+            const backendURL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+            const res = await fetch(`${backendURL}${endpoint}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body
             });
             const data = await res.json();
