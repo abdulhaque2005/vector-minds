@@ -24,4 +24,21 @@ dist-ssr
 *.sw?
 
 server/node_modules
+server/.env
 .vercel
+.env
+*.log
+build-error.log
+build-log.txt
+build.log
+build_utf8.log
+dev-err.log
+push_error.txt
+issues.txt
+issues2.txt
+lint.json
+lint.txt
+lint2.txt
+lint_utf8.json
+l.json
+fix-lint.cjs

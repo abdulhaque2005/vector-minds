@@ -2,6 +2,44 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, ArrowRight, ShieldCheck, Check } from 'lucide-react';
 
+// ── Local auth helpers (no backend needed) ─────────────────────────────────
+function getUsers() {
+    try { return JSON.parse(localStorage.getItem('flx_users') || '[]'); } catch { return []; }
+}
+function saveUsers(users) {
+    localStorage.setItem('flx_users', JSON.stringify(users));
+}
+function findUser(email) {
+    return getUsers().find(u => u.email === email);
+}
+function registerUser(name, email, password) {
+    const users = getUsers();
+    if (users.find(u => u.email === email)) return { error: 'Account already exists with this email.' };
+    const user = {
+        _id: 'usr_' + Date.now(),
+        name,
+        email,
+        password,
+        currency: 'INR',
+        avatar: null,
+        bio: '',
+        role: 'Freelancer · INR Node',
+        token: 'local_' + Math.random().toString(36).slice(2),
+    };
+    users.push(user);
+    saveUsers(users);
+    const { password: _, ...safeUser } = user;
+    return { user: safeUser };
+}
+function loginUser(email, password) {
+    const user = findUser(email);
+    if (!user) return { error: 'No account found. Please sign up first.' };
+    if (user.password !== password) return { error: 'Invalid password. Please try again.' };
+    const { password: _, ...safeUser } = user;
+    safeUser.token = 'local_' + Math.random().toString(36).slice(2);
+    return { user: safeUser };
+}
+
 export default function LoginPage({ onLogin }) {
     const [mode, setMode] = useState('login');
     const [name, setName] = useState('');
@@ -29,31 +67,26 @@ export default function LoginPage({ onLogin }) {
         if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
         if (!isVerified) { setError('Please complete the human verification check.'); return; }
         setLoading(true);
-        try {
-            const endpoint = mode === 'signup' ? '/api/auth/register' : '/api/auth/login';
-            const body = mode === 'signup'
-                ? JSON.stringify({ name, email, password })
-                : JSON.stringify({ email, password });
-            const backendURL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
-            const res = await fetch(`${backendURL}${endpoint}`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body
-            });
-            let data;
-            const contentType = res.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                data = await res.json();
-            } else {
-                const text = await res.text();
-                throw new Error('Server error: check your backend connection.');
-            }
-            if (!res.ok) throw new Error(data.message || 'Authentication failed');
-            localStorage.setItem('flx_user', JSON.stringify(data));
-            onLogin(data);
-        } catch (err) {
-            setError(err.message || 'Failed to connect to server');
-        } finally {
-            setLoading(false);
+
+        // Small delay for UX feel
+        await new Promise(r => setTimeout(r, 800));
+
+        let result;
+        if (mode === 'signup') {
+            result = registerUser(name, email, password);
+        } else {
+            result = loginUser(email, password);
         }
+
+        if (result.error) {
+            setError(result.error);
+            setLoading(false);
+            return;
+        }
+
+        localStorage.setItem('flx_user', JSON.stringify(result.user));
+        onLogin(result.user);
+        setLoading(false);
     };
 
     return (
@@ -175,8 +208,6 @@ export default function LoginPage({ onLogin }) {
                             }
                         </button>
                     </form>
-
-                    {/* Social login removed per user request */}
 
                     {/* Switch mode */}
                     <p style={{ textAlign: 'center', fontSize: '.775rem', color: 'var(--t4)', marginTop: 14 }}>
